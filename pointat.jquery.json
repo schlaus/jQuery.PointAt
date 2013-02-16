@@ -1,0 +1,26 @@
+{
+	"name": "PointAt",
+	"title": "jQuery.PointAt",
+	"description": "A simple jQuery plugin for pointing at things",
+	"keywords": [
+		"ui",
+		"rotate"
+	],
+	"version": "1.0",
+	"author": {
+		"name": "Klaus Karkia",
+		"url": "http://pointat.idenations.com"
+	},
+	"licenses": [
+		{
+			"type": "MIT",
+			"url": "http://www.opensource.org/licenses/mit-license.php"
+		}
+	],
+	"homepage": "http://pointat.idenations.com",
+	"download": "http://pointat.idenations.com/download",
+	"demo": "http://pointat.idenations.com/demo",
+	"dependencies": {
+		"jquery": ">=1.7"
+	}
+}

@@ -1,17 +1,17 @@
 /**
  * @name jQuery PointAt
- * @version 1.0
+ * @version 1.1
  * @author Klaus Karkia
  * @license MIT license
  * 
- * Last update: 12.2.2013
+ * Last update: 16.2.2013
  * 
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * Website: http://pointat.idenations.com
  * Contact: pointat@idenations.com
  *
- * Requires jqueryrotate, http://code.google.com/p/jqueryrotate/
- * or a similar library that offers $("#element").rotate(angle) functionality
+ * Requires jqrotate, http://plugins.jquery.com/jqrotate/
+ * or a similar plugin that allows element rotation
  * 
  */
 
@@ -31,7 +31,8 @@
 				passAngleTo: null,
 				xCorrection: 0,
 				yCorrection: 0,
-				pause: false
+				pause: false,
+				rotateFunction: "jqrotate"
 			};
 			settings = $.extend({}, defaults, options);
 			return this.each(function() {
@@ -83,13 +84,15 @@
 		},
 		
 		getAngle: function() {
-			settings = $(this).data("settings.pointat");
+			var settings = $(this).data("settings.pointat"),
+				tpos,
+				apos,
+				angle;
 			if (!settings) {
 				$.error( 'Method getAngle used on an element that does not have jQuery.PointAt initialized.');
 			}
-			var tpos,
-				apos = $(settings.target).offset(),
-				angle = 0;
+			apos = $(settings.target).offset();
+			angle = 0;
 			
 			if (settings.getAngleFrom !== null) {
 				tpos = $(settings.getAngleFrom).offset();
@@ -122,12 +125,19 @@
 		
 		updateRotation: function() {
 			return $(this).each(function() {
-				settings = $(this).data("settings.pointat");
+				var settings = $(this).data("settings.pointat"),
+					angle = 0,
+					rotateString = null,
+					eventDataO = [];
 				if (!settings) {
 					$.error( 'Method updateRotation used on an element that does not have jQuery.PointAt initialized.');
 				}
-				var	angle = methods.getAngle.apply(this);
-	
+				angle = methods.getAngle.apply(this);
+				if (settings.pause === false) {
+					eventDataO = [$(this).data("angle.pointat"), angle];
+					$(this).trigger("beforeRotate", eventDataO);
+				}
+				
 				if (settings.angleLessThanFunc !== null) {
 					if (angle < settings.angleLessThan) {
 						settings.angleLessThanFunc.apply(this);
@@ -146,19 +156,24 @@
 					}
 				}
 				if (settings.pause === false) {
-					$(this).rotate(angle);
+					$(this).data("angle.pointat", angle);
+					rotateString = "var angle = $(this).data('angle.pointat'); $(this)." + settings.rotateFunction + "(angle);";
+					eval(rotateString);
 				}
+				$(this).trigger("afterRotate", eventDataO);
 			});
 		},
 
 		destroy: function() {
 			return this.each(function() {
-				settings = $(this).data("settings.pointat");
+				var settings = $(this).data("settings.pointat"),
+					myid,
+					nspace;
 				if (!settings) {
 					$.error( 'Method destroy used on an element that does not have jQuery.PointAt initialized.');
 				}
-				var myid = $(this).data("myid.pointat"),
-					nspace = ".pointat";
+				myid = $(this).data("myid.pointat");
+				nspace = ".pointat";
 				myid = +myid || 0;	
 				nspace = ".pointat" + myid;
 				$(window).unbind(nspace);
@@ -176,7 +191,7 @@
 		
 		pause: function() {
 			return this.each(function() {
-				settings = $(this).data("settings.pointat");
+				var settings = $(this).data("settings.pointat");
 				if (settings) {
 					settings.pause = true;
 					$(this).data("settings.pointat", settings);
@@ -188,7 +203,7 @@
 
 		resume: function() {
 			return this.each(function() {
-				settings = $(this).data("settings.pointat");
+				var settings = $(this).data("settings.pointat");
 				if (settings) {
 					settings.pause = false;
 					$(this).data("settings.pointat", settings);
