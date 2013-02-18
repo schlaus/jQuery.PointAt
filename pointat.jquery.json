@@ -1,12 +1,12 @@
 {
 	"name": "pointat",
 	"title": "jQuery.PointAt",
-	"description": "A simple jQuery plugin for pointing at things",
+	"description": "A simple jQuery plugin for pointing at things. Basically, you tell PointAt which element you would like another element to point at, and the plugin automatically calculates the correct angle and rotates the pointer element accordingly, using your choice of rotation plugin. Check out the demos and our rotation plugin suggestions on our homepage.",
 	"keywords": [
 		"ui",
 		"rotate"
 	],
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"author": {
 		"name": "Klaus Karkia",
 		"url": "http://pointat.idenations.com"

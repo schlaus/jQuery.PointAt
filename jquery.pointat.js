@@ -1,10 +1,10 @@
 /**
  * @name jQuery PointAt
- * @version 1.1
+ * @version 1.2
  * @author Klaus Karkia
  * @license MIT license
  * 
- * Last update: 16.2.2013
+ * Last update: 18.2.2013
  * 
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * Website: http://pointat.idenations.com
@@ -32,7 +32,8 @@
 				xCorrection: 0,
 				yCorrection: 0,
 				pause: false,
-				rotateFunction: "jqrotate"
+				rotateFunction: "jqrotate",
+				changeTargetTo: "low"
 			};
 			settings = $.extend({}, defaults, options);
 			return this.each(function() {
@@ -83,7 +84,7 @@
 			
 		},
 		
-		getAngle: function() {
+		getAngle: function(target) {
 			var settings = $(this).data("settings.pointat"),
 				tpos,
 				apos,
@@ -91,7 +92,11 @@
 			if (!settings) {
 				$.error( 'Method getAngle used on an element that does not have jQuery.PointAt initialized.');
 			}
-			apos = $(settings.target).offset();
+			target = typeof target !== 'undefined' ? target : settings.target;
+			if (target instanceof Array) {
+				target = target[0];
+			}
+			apos = $(target).offset();
 			angle = 0;
 			
 			if (settings.getAngleFrom !== null) {
@@ -126,13 +131,49 @@
 		updateRotation: function() {
 			return $(this).each(function() {
 				var settings = $(this).data("settings.pointat"),
-					angle = 0,
-					rotateString = null,
-					eventDataO = [];
+					angle = $(this).data("angle.pointat"),
+					eventDataO = [],
+					proposedAngle,
+					currentTarget,
+					newTarget,
+					i,
+					angleTarget = settings.changeTargetTo,
+					angleDiff = 370;
 				if (!settings) {
 					$.error( 'Method updateRotation used on an element that does not have jQuery.PointAt initialized.');
 				}
-				angle = methods.getAngle.apply(this);
+				if (settings.target instanceof Array) {
+					if (isNaN(angle)) {
+						if (settings.changeTargetTo === "low") {
+							angle = 361;
+						} else if (settings.changeTargetTo === "high") {
+							angle = -1;
+						} else {
+							angle = -1;
+						}
+					}
+					if (settings.changeTargetTo === "low") {
+						angleTarget = 0;
+					} else if (settings.changeTargetTo === "high") {
+						angleTarget = 360;
+					}
+					for (i = 0; i < settings.target.length; i++) {
+						proposedAngle = methods.getAngle.apply(this, [settings.target[i]]);
+						if (angleDiff > Math.abs(angleTarget - proposedAngle)) {
+							angleDiff = Math.abs(angleTarget - proposedAngle);
+							angle = proposedAngle;
+							newTarget = settings.target[i];
+						}
+					}
+					currentTarget = $(this).data("currentTarget.pointat");
+					if (newTarget !== currentTarget) {
+						eventDataO = [newTarget, currentTarget];
+						$(this).data("currentTarget.pointat", newTarget);
+						$(this).trigger("changedTarget", eventDataO);
+					}
+				} else {
+					angle = methods.getAngle.apply(this);				
+				}
 				if (settings.pause === false) {
 					eventDataO = [$(this).data("angle.pointat"), angle];
 					$(this).trigger("beforeRotate", eventDataO);
@@ -157,8 +198,7 @@
 				}
 				if (settings.pause === false) {
 					$(this).data("angle.pointat", angle);
-					rotateString = "var angle = $(this).data('angle.pointat'); $(this)." + settings.rotateFunction + "(angle);";
-					eval(rotateString);
+					$(this)[settings.rotateFunction](angle);
 				}
 				$(this).trigger("afterRotate", eventDataO);
 			});
